@@ -1,6 +1,6 @@
 import { readdir } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
-import { DirectoryContents } from '@/types'
+import type { DirectoryContents } from '@/types'
 
 const extensions = ['.gp', '.gpx', '.gp5', '.gp4', '.gp3']
 
@@ -26,9 +26,11 @@ const readDirectory = async (dir: string) => {
     )
   )
 
-  return files.filter(file =>
-    typeof file === 'string' ? isTab(file) : file.contents.length > 0
-  )
+  return files
+    .filter(file =>
+      typeof file === 'string' ? isTab(file) : file.contents.length > 0
+    )
+    .sort((a, b) => (typeof a === 'string' ? 1 : 0))
 }
 
 export const storage = async () =>
