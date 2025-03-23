@@ -30,7 +30,7 @@ const Directory: FC<{ directory: Directory }> = ({ directory }) => {
     <li className='pl-4'>
       {isOpen ? '📂' : '📁'}{' '}
       <a
-        className='text-tabi decoration-tabi cursor-pointer hover:underline'
+        className='decoration-tabi cursor-pointer hover:underline'
         onClick={() => setIsOpen(!isOpen)}
       >
         {directory.name}
