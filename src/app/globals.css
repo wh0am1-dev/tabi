@@ -4,7 +4,7 @@
   --font-sans: var(--font-outfit);
   --font-mono: var(--font-fira-code);
   --font-kana: var(--font-kana);
-  --color-tabi: var(--color-amber-500);
+  --color-tabi: var(--color-red-500);
   --drop-shadow-tabi: 4px 4px 0px var(--color-stone-700);
 }
 
