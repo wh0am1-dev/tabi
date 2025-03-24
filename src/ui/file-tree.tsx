@@ -1,7 +1,7 @@
 'use client'
 
 import { FC, useState } from 'react'
-import cn from 'classnames'
+import { twMerge as tw } from 'tailwind-merge'
 import type { File, Directory, DirectoryContents } from '@/types'
 
 interface FileTreeProps {
@@ -10,7 +10,7 @@ interface FileTreeProps {
 }
 
 export const FileTree: FC<FileTreeProps> = ({ root, className }) => (
-  <ul className={cn('list-none p-4 text-xs', className)}>
+  <ul className={tw('list-none p-4 text-xs', className)}>
     {root.map(item =>
       typeof item === 'string' ? (
         <File key={item} name={item} />

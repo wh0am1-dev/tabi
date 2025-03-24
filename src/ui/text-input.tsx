@@ -1,8 +1,8 @@
 'use client'
 
-import { ComponentPropsWithoutRef, forwardRef, useState } from 'react'
+import { ComponentPropsWithoutRef, forwardRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import cn from 'classnames'
+import { twMerge as tw } from 'tailwind-merge'
 
 interface TextInputProps
   extends Omit<ComponentPropsWithoutRef<'input'>, 'type' | 'name'> {
@@ -31,7 +31,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
         ref={ref}
         name={name}
         {...props}
-        className={cn(
+        className={tw(
           'rounded-full px-4 py-2 transition-all',
           'border-2 border-stone-700 outline-none',
           'focus:border-tabi',
