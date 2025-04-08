@@ -11,9 +11,16 @@ type Shortcuts = {
  */
 export const useKeyboard = (shortcuts: Shortcuts, deps?: DependencyList) => {
   useEffect(() => {
-    const handler = (event: KeyboardEvent) => shortcuts[event.key]?.(event)
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
+    const keymap = (event: KeyboardEvent) => {
+      const handler = shortcuts[event.key]
+      if (handler) {
+        event.preventDefault()
+        handler(event)
+      }
+    }
+
+    window.addEventListener('keydown', keymap)
+    return () => window.removeEventListener('keydown', keymap)
   }, deps) // eslint-disable-line react-hooks/exhaustive-deps
 }
 

@@ -6,7 +6,7 @@ import { twMerge as tw } from 'tailwind-merge'
 import { AlphaTabApi, LayoutMode } from '@coderline/alphatab'
 import isEqual from 'lodash/isEqual'
 
-import useUpdate from '@/lib/hooks/useUpdate'
+import useRender from '@/lib/hooks/useRender'
 import useLocalStorage from '@/lib/hooks/useLocalStorage'
 import Anchor from '@/lib/ui/anchor'
 import Range from '@/lib/ui/range'
@@ -18,15 +18,16 @@ type ControlsProps = {
 }
 
 export const Controls: FC<ControlsProps> = ({ name, tab }) => {
-  const update = useUpdate()
-  const [multitrack, setMultitrack] = useState<boolean>(true)
-  const [currentTracks, setCurrentTracks] = useState<number[]>([])
-  const [volume, setVolume] = useLocalStorage<number>('volume', 1)
-  const [layout, setLayout] = useLocalStorage<LayoutMode>(
-    'layout',
-    LayoutMode.Horizontal
-  )
+  const render = useRender()
 
+  const [currentTracks, setCurrentTracks] = useState<number[]>([])
+  const [multitrack, setMultitrack] = useState<boolean>(true)
+
+  const [volume, setVolume] = useLocalStorage('volume')
+  const [notation, setNotation] = useLocalStorage('notation')
+  const [layout, setLayout] = useLocalStorage('layout')
+
+  // reset on score loaded
   useEffect(() => {
     const scoreLoaded = () => {
       tab.masterVolume = volume
@@ -37,6 +38,7 @@ export const Controls: FC<ControlsProps> = ({ name, tab }) => {
     return () => tab.scoreLoaded.off(scoreLoaded)
   }, [tab])
 
+  // update current tracks on render
   useEffect(() => {
     const renderStarted = () => {
       const allTracks = tab.score?.tracks.map(track => track.index)
@@ -66,8 +68,9 @@ export const Controls: FC<ControlsProps> = ({ name, tab }) => {
 
       <hr />
 
-      {/* instruments */}
+      {/* arrangement */}
       <ul className='flex flex-col gap-4'>
+        {/* master volume */}
         <li className='flex flex-col'>
           <label className='flex w-full items-center gap-2 px-2'>
             Master
@@ -84,6 +87,7 @@ export const Controls: FC<ControlsProps> = ({ name, tab }) => {
           </label>
         </li>
 
+        {/* instruments */}
         {tab?.score?.tracks.map((track, index) => (
           <li key={`${track.name}-${index}`} className='flex flex-col'>
             <Anchor
@@ -110,7 +114,7 @@ export const Controls: FC<ControlsProps> = ({ name, tab }) => {
                     [track],
                     (track.playbackInfo.volume = +event.target.value)
                   )
-                  setTimeout(update, 10)
+                  setTimeout(render, 10)
                 }}
               />
             </label>
@@ -118,6 +122,7 @@ export const Controls: FC<ControlsProps> = ({ name, tab }) => {
         ))}
       </ul>
 
+      {/* multitrack */}
       <Anchor
         onClick={() => tab.renderTracks(tab.score?.tracks ?? [])}
         className={tw(
@@ -131,30 +136,72 @@ export const Controls: FC<ControlsProps> = ({ name, tab }) => {
       <hr />
 
       {/* view */}
-      <div className='flex justify-center gap-2'>
-        Layout:
-        <Anchor
-          onClick={() => {
-            setLayout((tab.settings.display.layoutMode = LayoutMode.Horizontal))
-            tab.updateSettings()
-            tab.render()
-          }}
-          className={tw(
-            layout === LayoutMode.Horizontal && 'bg-tabi text-contrast'
-          )}
-        >
-          <Icon.ArrowRight />
-        </Anchor>
-        <Anchor
-          onClick={() => {
-            setLayout((tab.settings.display.layoutMode = LayoutMode.Page))
-            tab.updateSettings()
-            tab.render()
-          }}
-          className={tw(layout === LayoutMode.Page && 'bg-tabi text-contrast')}
-        >
-          <Icon.ArrowDown />
-        </Anchor>
+      <div className='flex w-1/2 justify-between gap-2 self-center'>
+        Layout
+        <div className='flex gap-2'>
+          <Anchor
+            onClick={() => {
+              setLayout(
+                (tab.settings.display.layoutMode = LayoutMode.Horizontal)
+              )
+              tab.updateSettings()
+              tab.render()
+            }}
+            className={tw(
+              layout === LayoutMode.Horizontal && 'bg-tabi text-contrast'
+            )}
+          >
+            <Icon.ArrowRight />
+          </Anchor>
+          <Anchor
+            onClick={() => {
+              setLayout((tab.settings.display.layoutMode = LayoutMode.Page))
+              tab.updateSettings()
+              tab.render()
+            }}
+            className={tw(
+              layout === LayoutMode.Page && 'bg-tabi text-contrast'
+            )}
+          >
+            <Icon.ArrowDown />
+          </Anchor>
+        </div>
+      </div>
+
+      <div className='flex w-1/2 justify-between gap-2 self-center'>
+        View
+        <div className='flex gap-2'>
+          <Anchor
+            onClick={() => {
+              setNotation('tab')
+              tab.score?.tracks.forEach(track => {
+                track.staves.forEach(staff => {
+                  staff.showStandardNotation = false
+                  staff.showTablature = true
+                })
+              })
+              tab.render()
+            }}
+            className={tw(notation === 'tab' && 'bg-tabi text-contrast')}
+          >
+            <Icon.Tab />
+          </Anchor>
+          <Anchor
+            onClick={() => {
+              setNotation('score')
+              tab.score?.tracks.forEach(track => {
+                track.staves.forEach(staff => {
+                  staff.showStandardNotation = true
+                  staff.showTablature = false
+                })
+              })
+              tab.render()
+            }}
+            className={tw(notation === 'score' && 'bg-tabi text-contrast')}
+          >
+            <Icon.Score />
+          </Anchor>
+        </div>
       </div>
     </div>
   )

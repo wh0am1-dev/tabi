@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, FC, ReactNode, Ref } from 'react'
+import type { ComponentPropsWithoutRef, FC, ReactNode } from 'react'
 import { useRef, useState } from 'react'
 import { twMerge as tw } from 'tailwind-merge'
 
@@ -13,10 +13,6 @@ type SidebarProps = ComponentPropsWithoutRef<'aside'> & {
   side?: 'left' | 'right'
   isOpen?: boolean
   onClose?: () => void
-  classes?: {
-    root?: string
-    button?: string
-  }
 }
 
 export const Sidebar: FC<SidebarProps> = ({
@@ -25,7 +21,6 @@ export const Sidebar: FC<SidebarProps> = ({
   side = 'left',
   isOpen: isOpenInit = false,
   className,
-  classes,
   ...props
 }) => {
   const container = useRef<HTMLDivElement>(null)
@@ -42,7 +37,6 @@ export const Sidebar: FC<SidebarProps> = ({
         'flex gap-2 transition-transform',
         side === 'left' ? 'left-2' : 'right-2',
         !isOpen && (side === 'left' ? '-translate-x-82' : 'translate-x-82'),
-        classes?.root,
         className
       )}
     >

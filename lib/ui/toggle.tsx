@@ -13,7 +13,7 @@ export const Toggle: FC<ToggleProps> = ({ checked, disabled, onChange }) => (
     aria-checked={checked}
     onClick={() => !disabled && onChange?.(!checked)}
     className={tw(
-      'relative h-4 w-10 bg-stone-500 align-middle',
+      'relative h-4 w-10 bg-stone-700 align-middle',
       'cursor-pointer rounded-full select-none'
     )}
   >

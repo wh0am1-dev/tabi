@@ -1,5 +1,5 @@
 import { RefObject, useEffect, useState } from 'react'
-import { AlphaTabApi, LayoutMode } from '@coderline/alphatab'
+import { AlphaTabApi } from '@coderline/alphatab'
 
 import useLocalStorage from '@/lib/hooks/useLocalStorage'
 
@@ -13,7 +13,8 @@ export const useTab = (
   element: RefObject<HTMLDivElement | null>
 ) => {
   const [tab, setTab] = useState<AlphaTabApi>()
-  const [layout] = useLocalStorage<LayoutMode>('layout', LayoutMode.Horizontal)
+  const [layout] = useLocalStorage('layout')
+  const [notation] = useLocalStorage('notation')
 
   // initialize alphatab
   useEffect(() => {
@@ -64,23 +65,6 @@ export const useTab = (
       }
     })
 
-    tab.scoreLoaded.on(score => {
-      // render all tracks
-      tab.renderTracks(score.tracks)
-      window.scroll({ top: 0, left: 0, behavior: 'smooth' })
-
-      score.tracks.forEach(track => {
-        // reset volumes and balances
-        track.playbackInfo.volume = 16
-        track.playbackInfo.balance = 8
-        //  only show tabs
-        track.staves.forEach(staff => {
-          staff.showStandardNotation = false
-          staff.showTablature = true
-        })
-      })
-    })
-
     setTab(tab)
 
     return () => {
@@ -94,6 +78,30 @@ export const useTab = (
     tab.pause()
     tab.load(file)
   }, [tab, file])
+
+  // initialize tab settings upon load
+  useEffect(() => {
+    if (!tab) return
+
+    const reset: Parameters<typeof tab.scoreLoaded.on>[0] = score => {
+      tab.renderTracks(score.tracks)
+      window.scroll({ top: 0, left: 0, behavior: 'smooth' })
+
+      score.tracks.forEach(track => {
+        track.playbackInfo.volume = 16
+        track.playbackInfo.balance = 8
+        track.staves.forEach(staff => {
+          staff.showStandardNotation = notation === 'score'
+          staff.showTablature = notation === 'tab'
+        })
+      })
+    }
+
+    tab.scoreLoaded.on(reset)
+    return () => {
+      tab.scoreLoaded.off(reset)
+    }
+  }, [tab, notation])
 
   return tab
 }

@@ -4,9 +4,7 @@ import { AlphaTabWebPackPlugin } from '@coderline/alphatab/webpack'
 const nextConfig: NextConfig = {
   output: 'standalone',
   allowedDevOrigins: ['umbrel.local'],
-  devIndicators: {
-    position: 'bottom-right'
-  },
+  devIndicators: false,
   webpack(config) {
     config.plugins.push(
       new AlphaTabWebPackPlugin({

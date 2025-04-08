@@ -2,11 +2,11 @@
 
 import type { ComponentPropsWithoutRef, FC } from 'react'
 import { useState } from 'react'
+import { redirect } from 'next/navigation'
 import { twMerge as tw } from 'tailwind-merge'
 
 import type { File, Directory } from '@/lib/types'
 import Anchor from '@/lib/ui/anchor'
-import { redirect } from 'next/navigation'
 
 type FileTreeProps = ComponentPropsWithoutRef<'ul'> & {
   root: Directory

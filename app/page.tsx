@@ -3,12 +3,12 @@ import { twMerge as tw } from 'tailwind-merge'
 import type { PageProps } from '@/lib/types'
 import { logout } from '@/lib/actions'
 import library from '@/lib/library'
+import Tab from '@/lib/components/tab'
 import Logo from '@/lib/ui/logo'
 import Button from '@/lib/ui/button'
 import Sidebar from '@/lib/ui/sidebar'
 import FileTree from '@/lib/ui/file-tree'
 import Icon from '@/lib/ui/icon'
-import Tab from '@/lib/ui/tab'
 
 export const dynamic = 'force-dynamic'
 

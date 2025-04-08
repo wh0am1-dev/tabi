@@ -1,49 +1,45 @@
+import { LayoutMode } from '@coderline/alphatab'
 import { isSSR } from '@/lib/utils'
 
-export type StorageKey = 'layout' | 'volume'
-const withPrefix = (key: StorageKey) => `tabi:${key}`
-
-type JSONObject = { [key in string]?: Serializable }
-type JSONArray = Serializable[]
-export type Serializable =
-  | string
-  | number
-  | boolean
-  | JSONObject
-  | JSONArray
-  | null
-
-interface StorageGetter {
-  /**
-   * Retrieve a value from the local storage
-   * @param key The key to retrieve
-   * @returns The value if found, null otherwise
-   */
-  <T extends Serializable>(key: StorageKey): T | null
-  /**
-   * Retrieve a value from the local storage
-   * @param key The key to retrieve
-   * @param defaultValue (Optional) Default value to store and return if not already in storage
-   * @returns The value if found, or `defaultValue` if provided, or null if none
-   */
-  <T extends Serializable>(key: StorageKey, defaultValue?: T): T
+/**
+ * Storage data structure
+ */
+export interface Storage {
+  /** Layout of the tab (page = 0 | horizontal = 1) */
+  layout: LayoutMode
+  /** Music notation ('tab' | 'score') */
+  notation: 'tab' | 'score'
+  /** Master volume in range [0..1] */
+  volume: number
 }
 
-const get: StorageGetter = <T extends Serializable>(
-  key: StorageKey,
-  defaultValue?: T
-) => {
-  if (isSSR()) return defaultValue ?? null
+/**
+ * Default storage values
+ */
+const defaults: Storage = {
+  layout: LayoutMode.Horizontal,
+  notation: 'tab',
+  volume: 1
+}
 
-  const storedValue = localStorage.getItem(withPrefix(key))
-  if (storedValue) return JSON.parse(storedValue) as T
+/**
+ * Prepend prefix to storage keys
+ * @param key the key to prepend to
+ */
+const withPrefix = (key: keyof Storage) => `tabi:${key}`
 
-  if (defaultValue) {
-    set<T>(key, defaultValue)
-    return defaultValue
+/**
+ * Retrieve a value from the local storage
+ * @param key The key to retrieve
+ * @returns The value if found in the storage, otherwise returns its default value
+ */
+const get = <T extends keyof Storage>(key: T): Storage[T] => {
+  if (!isSSR()) {
+    const storedValue = localStorage.getItem(withPrefix(key))
+    if (storedValue) return JSON.parse(storedValue)
   }
 
-  return null
+  return defaults[key]
 }
 
 /**
@@ -51,7 +47,7 @@ const get: StorageGetter = <T extends Serializable>(
  * @param key The key to store to
  * @param value The value to store
  */
-const set = <T extends Serializable>(key: StorageKey, value: T) => {
+const set = <T extends keyof Storage>(key: T, value: Storage[T]) => {
   if (isSSR()) return
   localStorage.setItem(withPrefix(key), JSON.stringify(value))
 }
@@ -60,7 +56,7 @@ const set = <T extends Serializable>(key: StorageKey, value: T) => {
  * Remove a value from the local storage
  * @param key The key to remove
  */
-const remove = (key: StorageKey) => {
+const remove = (key: keyof Storage) => {
   if (isSSR()) return
   localStorage.removeItem(withPrefix(key))
 }
@@ -74,6 +70,7 @@ const clear = () => {
 }
 
 export const storage = {
+  defaults,
   get,
   set,
   remove,

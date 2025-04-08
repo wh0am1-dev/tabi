@@ -1,15 +1,11 @@
 import { useEffect } from 'react'
 import { AlphaTabApi } from '@coderline/alphatab'
 
-import useUpdate from '@/lib/hooks/useUpdate'
-
 /**
- * Registers all of the app's keyboard shortcuts
+ * Registers all of the tab keyboard shortcuts
  * @param api AlphaTab instance
  */
-export const useShortcuts = (api: AlphaTabApi | undefined) => {
-  const update = useUpdate()
-
+export const useShortcuts = (api?: AlphaTabApi) => {
   useEffect(() => {
     if (!api) return
 
@@ -18,14 +14,13 @@ export const useShortcuts = (api: AlphaTabApi | undefined) => {
         case ' ':
           event.preventDefault()
           api.playPause()
-          setTimeout(update, 10)
           break
       }
     }
 
-    document.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keydown', onKeyDown)
     return () => {
-      document.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keydown', onKeyDown)
     }
   }, [api])
 }
