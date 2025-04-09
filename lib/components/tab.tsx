@@ -24,7 +24,7 @@ export const Tab: FC<TabProps> = ({ file, className }) => {
   const element = useRef<HTMLDivElement>(null)
   const tab = useTab(file, element)
 
-  useShortcuts(tab)
+  useShortcuts(tab, element)
 
   // set layout mode state upon render
   useEffect(() => {
@@ -52,7 +52,7 @@ export const Tab: FC<TabProps> = ({ file, className }) => {
         className={tw(
           layoutMode === LayoutMode.Horizontal
             ? 'overflow-x-auto overflow-y-hidden'
-            : 'overflow-x-hidden overflow-y-auto',
+            : 'overflow-x-hidden overflow-y-auto py-8',
           className
         )}
       />

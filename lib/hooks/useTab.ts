@@ -60,6 +60,9 @@ export const useTab = (
         enableElementHighlighting: true,
         scrollMode: 'OffScreen',
         scrollElement: element.current!,
+        scrollOffsetX: -32,
+        scrollOffsetY: -16,
+        scrollSpeed: 10,
         nativeBrowserSmoothScroll: true,
         soundFont: '/alphatab/soundfont/sonivox.sf2'
       }
@@ -84,7 +87,7 @@ export const useTab = (
     if (!tab) return
 
     const reset: Parameters<typeof tab.scoreLoaded.on>[0] = score => {
-      tab.renderTracks(score.tracks)
+      tab.renderTracks([score.tracks[0]])
       window.scroll({ top: 0, left: 0, behavior: 'smooth' })
 
       score.tracks.forEach(track => {

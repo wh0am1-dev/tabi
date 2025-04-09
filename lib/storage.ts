@@ -9,6 +9,14 @@ export interface Storage {
   layout: LayoutMode
   /** Music notation ('tab' | 'score') */
   notation: 'tab' | 'score'
+  /** Whether the player has looping activated */
+  loop: boolean
+  /** Metronome volume */
+  metronome: 0 | 1
+  /** Count-in volume */
+  count: 0 | 1
+  /** Playback speed */
+  speed: number
   /** Master volume in range [0..1] */
   volume: number
 }
@@ -19,6 +27,10 @@ export interface Storage {
 const defaults: Storage = {
   layout: LayoutMode.Horizontal,
   notation: 'tab',
+  loop: false,
+  metronome: 0,
+  count: 0,
+  speed: 1,
   volume: 1
 }
 

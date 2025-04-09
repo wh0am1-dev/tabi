@@ -8,7 +8,7 @@ export const Link: FC<LinkProps> = ({ className, ...props }) => (
   <NextLink
     {...props}
     className={tw(
-      'text-tabi px-1 font-bold',
+      'text-tabi px-1 font-bold transition-colors',
       'hover:bg-tabi hover:text-contrast',
       className
     )}

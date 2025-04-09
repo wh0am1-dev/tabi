@@ -25,27 +25,38 @@ export const PlayPause: FC<PlayPauseProps> = ({ tab, className }) => {
   }, [tab])
 
   return (
-    <Button
-      onClick={() => tab.playPause()}
-      className={tw(
-        'flex items-center justify-center',
-        'aspect-square w-16 rounded-full',
-        className
-      )}
-    >
-      <span
+    <div className={tw('flex items-center justify-center gap-2', className)}>
+      <Button
+        onClick={() => tab.playPause()}
         className={tw(
-          '-translate-y-0.5',
-          tab.playerState === 0 && 'translate-x-0.5'
+          'flex items-center justify-center',
+          'aspect-square w-16 rounded-full'
         )}
       >
-        {tab.playerState === 0 ? (
-          <Icon.Play className='w-10' />
-        ) : (
-          <Icon.Pause className='w-10' />
+        <span
+          className={tw(
+            '-translate-y-0.5',
+            tab.playerState === 0 && 'translate-x-0.5'
+          )}
+        >
+          {tab.playerState === 0 ? (
+            <Icon.Play className='w-10' />
+          ) : (
+            <Icon.Pause className='w-10' />
+          )}
+        </span>
+      </Button>
+
+      <Button
+        onClick={() => tab.stop()}
+        className={tw(
+          'flex items-center justify-center',
+          'aspect-square rounded-full'
         )}
-      </span>
-    </Button>
+      >
+        <Icon.Stop className='-translate-y-0.5' />
+      </Button>
+    </div>
   )
 }
 

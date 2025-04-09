@@ -8,9 +8,9 @@ import isEqual from 'lodash/isEqual'
 
 import useRender from '@/lib/hooks/useRender'
 import useLocalStorage from '@/lib/hooks/useLocalStorage'
-import Anchor from '@/lib/ui/anchor'
 import Range from '@/lib/ui/range'
 import Icon from '@/lib/ui/icon'
+import Toggle from '../ui/toggle'
 
 type ControlsProps = {
   name: string
@@ -23,15 +23,23 @@ export const Controls: FC<ControlsProps> = ({ name, tab }) => {
   const [currentTracks, setCurrentTracks] = useState<number[]>([])
   const [multitrack, setMultitrack] = useState<boolean>(true)
 
-  const [volume, setVolume] = useLocalStorage('volume')
-  const [notation, setNotation] = useLocalStorage('notation')
   const [layout, setLayout] = useLocalStorage('layout')
+  const [notation, setNotation] = useLocalStorage('notation')
+  const [loop, setLoop] = useLocalStorage('loop')
+  const [metronome, setMetronome] = useLocalStorage('metronome')
+  const [count, setCount] = useLocalStorage('count')
+  const [speed, setSpeed] = useLocalStorage('speed')
+  const [volume, setVolume] = useLocalStorage('volume')
 
   // reset on score loaded
   useEffect(() => {
     const scoreLoaded = () => {
+      tab.isLooping = loop
+      tab.metronomeVolume = metronome
+      tab.countInVolume = count
+      tab.playbackSpeed = speed
       tab.masterVolume = volume
-      setMultitrack(true)
+      setMultitrack(false)
     }
 
     tab.scoreLoaded.on(scoreLoaded)
@@ -68,12 +76,141 @@ export const Controls: FC<ControlsProps> = ({ name, tab }) => {
 
       <hr />
 
+      {/* view */}
+      <div className='flex flex-col gap-4 px-2'>
+        <div className='flex justify-between'>
+          Layout
+          <div className='flex gap-2'>
+            <Toggle
+              active={layout === LayoutMode.Horizontal}
+              onClick={() => {
+                setLayout(
+                  (tab.settings.display.layoutMode = LayoutMode.Horizontal)
+                )
+                tab.updateSettings()
+                tab.render()
+              }}
+            >
+              <Icon.ArrowRight />
+            </Toggle>
+            <Toggle
+              active={layout === LayoutMode.Page}
+              onClick={() => {
+                setLayout((tab.settings.display.layoutMode = LayoutMode.Page))
+                tab.updateSettings()
+                tab.render()
+              }}
+            >
+              <Icon.ArrowDown />
+            </Toggle>
+          </div>
+        </div>
+
+        <div className='flex justify-between'>
+          Notation
+          <div className='flex gap-2'>
+            <Toggle
+              active={notation === 'tab'}
+              onClick={() => {
+                setNotation('tab')
+                tab.score?.tracks.forEach(track => {
+                  track.staves.forEach(staff => {
+                    staff.showStandardNotation = false
+                    staff.showTablature = true
+                  })
+                })
+                tab.render()
+              }}
+            >
+              <Icon.Tab />
+            </Toggle>
+            <Toggle
+              active={notation === 'score'}
+              onClick={() => {
+                setNotation('score')
+                tab.score?.tracks.forEach(track => {
+                  track.staves.forEach(staff => {
+                    staff.showStandardNotation = true
+                    staff.showTablature = false
+                  })
+                })
+                tab.render()
+              }}
+            >
+              <Icon.Score />
+            </Toggle>
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      {/* metronome */}
+      <div className='flex flex-col gap-4 px-2'>
+        <div className='flex justify-between'>
+          Loop
+          <div className='flex gap-2'>
+            <Toggle
+              active={tab.isLooping}
+              onClick={() => setLoop((tab.isLooping = !tab.isLooping))}
+            >
+              <Icon.Loop />
+            </Toggle>
+          </div>
+        </div>
+        <div className='flex justify-between'>
+          Metronome
+          <div className='flex gap-2'>
+            <Toggle
+              active={tab.metronomeVolume > 0}
+              onClick={() => {
+                setMetronome(
+                  (tab.metronomeVolume = tab.metronomeVolume > 0 ? 0 : 1)
+                )
+              }}
+            >
+              <Icon.Power />
+            </Toggle>
+          </div>
+        </div>
+        <div className='flex justify-between'>
+          Count-in
+          <div className='flex gap-2'>
+            <Toggle
+              active={tab.countInVolume > 0}
+              onClick={() => {
+                setCount((tab.countInVolume = tab.countInVolume > 0 ? 0 : 1))
+              }}
+            >
+              <Icon.Clock />
+            </Toggle>
+          </div>
+        </div>
+        <label className='flex w-full items-center gap-2'>
+          <span className='w-12'>Speed</span>
+          <Range
+            min={0.2}
+            max={1}
+            step={0.1}
+            value={tab.playbackSpeed}
+            className='grow'
+            onChange={event => {
+              setSpeed((tab.playbackSpeed = +event.target.value))
+            }}
+          />
+          <span className='w-10 text-right'>{tab.playbackSpeed * 100}%</span>
+        </label>
+      </div>
+
+      <hr />
+
       {/* arrangement */}
       <ul className='flex flex-col gap-4'>
         {/* master volume */}
-        <li className='flex flex-col'>
-          <label className='flex w-full items-center gap-2 px-2'>
-            Master
+        <li className='flex flex-col gap-1 px-1'>
+          <span className='px-1'>Master</span>
+          <label className='flex w-full items-center gap-2 px-1'>
+            <Icon.Volume />
             <Range
               min={0}
               max={1}
@@ -84,125 +221,83 @@ export const Controls: FC<ControlsProps> = ({ name, tab }) => {
                 setVolume((tab.masterVolume = +event.target.value))
               }}
             />
+            <span className='w-10 text-right'>
+              {Math.round(tab.masterVolume * 100)}%
+            </span>
           </label>
         </li>
 
         {/* instruments */}
-        {tab?.score?.tracks.map((track, index) => (
-          <li key={`${track.name}-${index}`} className='flex flex-col'>
-            <Anchor
-              onClick={() => tab.renderTracks([track])}
-              className={tw(
-                !multitrack &&
-                  currentTracks.includes(track.index) &&
-                  'bg-tabi text-contrast'
-              )}
-            >
-              {track.name || `unknown ${index + 1}`}
-            </Anchor>
+        {tab.score?.tracks.map((track, index) => (
+          <li
+            key={`${track.name}-${index}`}
+            className='flex flex-col gap-1 px-1'
+          >
+            <div className='flex justify-between'>
+              <Toggle
+                active={!multitrack && currentTracks.includes(track.index)}
+                onClick={() => tab.renderTracks([track])}
+              >
+                {track.name || `unknown ${index + 1}`}
+              </Toggle>
+              <div className='flex gap-2'>
+                <Toggle
+                  active={track.playbackInfo.isMute}
+                  onClick={() => {
+                    tab.changeTrackMute(
+                      [track],
+                      (track.playbackInfo.isMute = !track.playbackInfo.isMute)
+                    )
+                    render()
+                  }}
+                >
+                  <Icon.Mute />
+                </Toggle>
+                <Toggle
+                  active={track.playbackInfo.isSolo}
+                  onClick={() => {
+                    tab.changeTrackSolo(
+                      [track],
+                      (track.playbackInfo.isSolo = !track.playbackInfo.isSolo)
+                    )
+                    render()
+                  }}
+                >
+                  <Icon.Solo />
+                </Toggle>
+              </div>
+            </div>
 
-            <label className='flex w-full items-center gap-2 px-2'>
-              Volume
+            <label className='flex w-full items-center gap-2 px-1'>
+              <Icon.Volume />
               <Range
                 min={0}
                 max={1}
                 step={0.01}
-                value={track.playbackInfo.volume}
+                value={track.playbackInfo.volume / 16}
                 className='grow'
                 onChange={event => {
-                  tab.changeTrackVolume(
-                    [track],
-                    (track.playbackInfo.volume = +event.target.value)
-                  )
-                  setTimeout(render, 10)
+                  const vol = +event.target.value
+                  track.playbackInfo.volume = vol * 16
+                  tab.changeTrackVolume([track], vol)
+                  render()
                 }}
               />
+              <span className='w-10 text-right'>
+                {Math.round((track.playbackInfo.volume / 16) * 100)}%
+              </span>
             </label>
           </li>
         ))}
       </ul>
 
-      {/* multitrack */}
-      <Anchor
+      <Toggle
+        active={multitrack}
         onClick={() => tab.renderTracks(tab.score?.tracks ?? [])}
-        className={tw(
-          'w-fit self-center',
-          multitrack && 'bg-tabi text-contrast'
-        )}
+        className='self-center'
       >
-        Multitrack
-      </Anchor>
-
-      <hr />
-
-      {/* view */}
-      <div className='flex w-1/2 justify-between gap-2 self-center'>
-        Layout
-        <div className='flex gap-2'>
-          <Anchor
-            onClick={() => {
-              setLayout(
-                (tab.settings.display.layoutMode = LayoutMode.Horizontal)
-              )
-              tab.updateSettings()
-              tab.render()
-            }}
-            className={tw(
-              layout === LayoutMode.Horizontal && 'bg-tabi text-contrast'
-            )}
-          >
-            <Icon.ArrowRight />
-          </Anchor>
-          <Anchor
-            onClick={() => {
-              setLayout((tab.settings.display.layoutMode = LayoutMode.Page))
-              tab.updateSettings()
-              tab.render()
-            }}
-            className={tw(
-              layout === LayoutMode.Page && 'bg-tabi text-contrast'
-            )}
-          >
-            <Icon.ArrowDown />
-          </Anchor>
-        </div>
-      </div>
-
-      <div className='flex w-1/2 justify-between gap-2 self-center'>
-        View
-        <div className='flex gap-2'>
-          <Anchor
-            onClick={() => {
-              setNotation('tab')
-              tab.score?.tracks.forEach(track => {
-                track.staves.forEach(staff => {
-                  staff.showStandardNotation = false
-                  staff.showTablature = true
-                })
-              })
-              tab.render()
-            }}
-            className={tw(notation === 'tab' && 'bg-tabi text-contrast')}
-          >
-            <Icon.Tab />
-          </Anchor>
-          <Anchor
-            onClick={() => {
-              setNotation('score')
-              tab.score?.tracks.forEach(track => {
-                track.staves.forEach(staff => {
-                  staff.showStandardNotation = true
-                  staff.showTablature = false
-                })
-              })
-              tab.render()
-            }}
-            className={tw(notation === 'score' && 'bg-tabi text-contrast')}
-          >
-            <Icon.Score />
-          </Anchor>
-        </div>
-      </div>
+        View all
+      </Toggle>
     </div>
   )
 }

@@ -45,15 +45,17 @@ export const Fullscreen: FC<FullscreenProps> = ({ className }) => {
       onClick={toggleFullscreen}
       className={tw(
         'flex items-center justify-center',
-        'aspect-square w-16 rounded-full',
+        'aspect-square rounded-full',
         className
       )}
     >
-      {!document.fullscreenElement ? (
-        <Icon.FullscreenOn className='w-10' />
-      ) : (
-        <Icon.FullscreenOff className='w-10' />
-      )}
+      <span className='-translate-y-0.5'>
+        {!document.fullscreenElement ? (
+          <Icon.FullscreenOn />
+        ) : (
+          <Icon.FullscreenOff />
+        )}
+      </span>
     </Button>
   )
 }
